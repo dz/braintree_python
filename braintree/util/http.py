@@ -11,6 +11,12 @@ from braintree.exceptions.unexpected_error import UnexpectedError
 from braintree.exceptions.upgrade_required_error import UpgradeRequiredError
 from braintree import version
 
+TIMEOUT_ENABLED = True
+try:
+    httplib.HTTPSConnection('', timeout=60)
+except TypeError:
+    TIMEOUT_ENABLED = False
+
 class Http(object):
     @staticmethod
     def is_error_status(status):
@@ -50,11 +56,17 @@ class Http(object):
         return self.__http_do("PUT", path, params)
 
     def __http_do(self, http_verb, path, params=None):
+
+        args = [self.environment.server, self.environment.port]
+        kwargs = {}
+        if TIMEOUT_ENABLED:
+            kwargs['timeout'] = 60
+
         if self.environment.is_ssl:
             self.__verify_ssl()
-            conn = httplib.HTTPSConnection(self.environment.server, self.environment.port)
+            conn = httplib.HTTPSConnection(*args, **kwargs)
         else:
-            conn = httplib.HTTPConnection(self.environment.server, self.environment.port)
+            conn = httplib.HTTPConnection(*args, **kwargs)
 
         conn.request(
             http_verb,
