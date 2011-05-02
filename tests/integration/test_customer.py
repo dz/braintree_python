@@ -32,6 +32,33 @@ class TestCustomer(unittest.TestCase):
         self.assertNotEqual(None, customer.id)
         self.assertNotEqual(None, re.search("\A\d{6,7}\Z", customer.id))
 
+    def test_create_with_unicode(self):
+        result = Customer.create({
+            "first_name": u"Bill<&>",
+            "last_name": u"G\u1F00t\u1F18s",
+            "company": "Microsoft",
+            "email": "bill@microsoft.com",
+            "phone": "312.555.1234",
+            "fax": "614.555.5678",
+            "website": "www.microsoft.com"
+        })
+
+        self.assertTrue(result.is_success)
+        customer = result.customer
+
+        self.assertEqual(u"Bill<&>", customer.first_name)
+        self.assertEqual(u"G\u1f00t\u1F18s", customer.last_name)
+        self.assertEqual("Microsoft", customer.company)
+        self.assertEqual("bill@microsoft.com", customer.email)
+        self.assertEqual("312.555.1234", customer.phone)
+        self.assertEqual("614.555.5678", customer.fax)
+        self.assertEqual("www.microsoft.com", customer.website)
+        self.assertNotEqual(None, customer.id)
+        self.assertNotEqual(None, re.search("\A\d{6,7}\Z", customer.id))
+
+        found_customer = Customer.find(customer.id)
+        self.assertEqual(u"G\u1f00t\u1F18s", found_customer.last_name)
+
     def test_create_with_no_attributes(self):
         result = Customer.create()
         self.assertTrue(result.is_success)
@@ -296,6 +323,26 @@ class TestCustomer(unittest.TestCase):
         self.assertEqual("USA", updated_address.country_code_alpha3)
         self.assertEqual("840", updated_address.country_code_numeric)
         self.assertEqual("United States of America", updated_address.country_name)
+
+    def test_update_with_nested_billing_address_id(self):
+        customer = Customer.create().customer
+        address = Address.create({
+            "customer_id": customer.id,
+            "postal_code": "11111"
+        }).address
+
+        updated_customer = Customer.update(customer.id, {
+            "credit_card": {
+                "number": "4111111111111111",
+                "expiration_date": "12/12",
+                "billing_address_id": address.id
+            }
+        }).customer
+
+        credit_card = updated_customer.credit_cards[0]
+
+        self.assertEqual(address.id, credit_card.billing_address.id)
+        self.assertEqual("11111", credit_card.billing_address.postal_code)
 
     def test_update_with_invalid_options(self):
         customer = Customer.create({

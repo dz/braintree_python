@@ -1,3 +1,38 @@
+## 2.10.0
+
+* Added subscription_details to Transaction
+* Added flag to store in vault only when a transaction is successful
+* Added new error code
+
+## 2.9.1
+
+* Added improvements to unicode handling.
+
+## 2.9.0
+
+* Added a new transaction state, AuthorizationExpired.
+* Enabled searching by authorization_expired_at.
+
+## 2.8.0
+
+* Added next_billing_date and transaction_id to subscription search
+* Added address_country_name to customer search
+* Added new error codes
+
+## 2.7.0
+
+* Added Customer search
+* Added dynamic descriptors to Subscriptions and Transactions
+* Added level 2 fields to Transactions:
+  * tax_amount
+  * tax_exempt
+  * purchase_order_number
+
+## 2.6.1
+
+* Added billing_address_id to allowed parameters for credit cards create and update
+* Allow searching on subscriptions that are currently in a trial period using in_trial_period
+
 ## 2.6.0
 
 * Added ability to perform multiple partial refunds on Transactions
